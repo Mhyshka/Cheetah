@@ -1,0 +1,4 @@
+Cheetah
+=======
+
+IRC application client
