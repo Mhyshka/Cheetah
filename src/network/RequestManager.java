@@ -318,12 +318,12 @@ public class RequestManager {
 			inputThreads.get(key).turnOn();
 	}
 	
-	public void notifyShutdown(){
+	public void notifyShutdown(String reason){
 		for(String key : inputThreads.keySet()){
 			inputThreads.get(key).turnOff();
 			inputThreads.get(key).interrupt();
 			inputThreads.remove(key);
-			sendRequest(new Request("shutdown","",key));
+			sendRequest(new Request("shutdown",reason,key));
 		}
 	}
 	

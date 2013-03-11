@@ -339,11 +339,11 @@ public class Controller {
 		return channelManager.getChannels();
 	}
 	
-	public void shutdown(){
+	public void shutdown(String reason){
 		System.out.println("Logging out users.");
 		userManager.shutdown();
 		System.out.println("Notifying users.");
-		requestManager.notifyShutdown();
+		requestManager.notifyShutdown(reason);
 		System.out.println("Closing connections.");
 		while(requestManager.isStacked()){
 			try {
