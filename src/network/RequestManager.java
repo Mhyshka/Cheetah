@@ -78,8 +78,16 @@ public class RequestManager {
 					readGoodbye();
 				break;
 				
+				case "channels" :
+						readChannels();
+				break;
+				
 				default : System.out.println("Request Service Error - Unkown message type :" + request.getType() + "\nfrom : " + key);
 			}
+		}
+		
+		private void readChannels(){
+			sendChannels(key);
 		}
 		
 		private void readLogin(Request request){
@@ -111,14 +119,10 @@ public class RequestManager {
 			GregorianCalendar cal = new GregorianCalendar();
 			SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 			df.setLenient(false);
-			message.setDate(df.format(cal));
+			message.setDate(df.format(cal.getTime()));
 			
-			Channel channel = (Channel)ctrl.getChannel(message.getChannel());
-			for(String username : channel.getUsers()){
-				message.addKey(ctrl.getUser(username).getKey());
-			}
 			ctrl.newMessage(message.getChannel(),message);
-			ctrl.send(request);
+			sendMessage(message);
 		}
 		
 		private void readPassword(Request request){
@@ -358,5 +362,14 @@ public class RequestManager {
 	
 	public void sendWelcome(String key){
 		new Request("welcome",ctrl.getServerName(),key);
+	}
+	
+	public void sendMessage(Message message){
+		Request request = new Request("message",new Gson().toJson(message),"");
+		Channel channel = (Channel)ctrl.getChannel(message.getChannel());
+		for(String username : channel.getUsers()){
+			request.addKey(ctrl.getUser(username).getKey());
+		}
+		sendRequest(request);
 	}
 }

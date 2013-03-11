@@ -53,8 +53,6 @@ public class UserManager {
 		nextUserId();
 		if(admins.containsKey(username))
 			admins.get(username)[1] = key;
-		linkUserToChannel(username,1);
-		ctrl.sendChannels(key);
 		System.out.println("User Service - User : " + username + " logged in.");
 	}
 	

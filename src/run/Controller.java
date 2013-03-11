@@ -268,6 +268,7 @@ public class Controller {
 	
 	public void login(String username, String key){
 		userManager.addUser(username, key);
+		sendChannels(key);
 	}
 	
 	public void disconnectClient(String username, String key){

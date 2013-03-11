@@ -11,7 +11,8 @@ public class Request {
 		type = newType;
 		content = newContent;
 		keys = new Vector<String>();
-		keys.add(newKey);
+		if(!newKey.isEmpty())
+			keys.add(newKey);
 	}
 	
 	public Request(String newType, String newContent, Vector<String> newKeys){
