@@ -38,12 +38,6 @@ public class Console extends Thread{
 					case "list" : listCommand(s);
 					break;
 					
-					case "stop" : stopCommand(s);
-					break;
-					
-					case "start" : startCommand(s);
-					break;
-					
 					case "shutdown" : shutdownCommand(s);
 					break;
 					
@@ -69,16 +63,18 @@ public class Console extends Thread{
 	}
 	
 	private void banCommand(String args[]){
+		// TODO 
+		// Non fonctionnelle.
 		switch(args[1]){
 			case "?": System.out.println("kick : Kick the user given in parameter." +
 					"\neg : 'kick AliGuetto38' will kick the user with the name AliGuetto38" +
 					"\nUsable with : username <name> .. <reason> ; userid <id> .. <reason>, ip <ip> .. <reason>");
 			break;
 			
-			case "user" : ctrl.ban(args);
+			case "user" : //ctrl.ban();
 			break;
 			
-			case "ip" : ctrl.ban(args);
+			case "ip" : //ctrl.ban();
 			break;
 			
 			default : System.out.println("Illegal argument 1. Use 'commandName ?' to obtain further informations.");
@@ -149,16 +145,18 @@ public class Console extends Thread{
 	}
 	
 	private void kickCommand(String args[]){
+		// TODO 
+		// Non fonctionnelle.
 		switch(args[1]){
 			case "?": System.out.println("kick : Kick the user given in parameter." +
 					"\neg : 'kick username AliGuetto38' will kick the user with the name AliGuetto38" +
 					"\nUsable with : username <name> .. <reason> ; userid <id> .. <reason>, ip <ip> .. <reason>");
 			break;
 			
-			case "user" : ctrl.kick(args);
+			case "user" : //ctrl.kick();
 			break;
 			
-			case "ip" : ctrl.kick(args);
+			case "ip" :// ctrl.kick();
 			break;
 			
 			default : System.out.println("Illegal argument 1. Use 'commandName ?' to obtain further informations.");
@@ -218,7 +216,8 @@ public class Console extends Thread{
 	}
 	
 	private void moveCommand(String args[]){
-		
+		// TODO 
+		// Non fonctionnelle.
 	}
 	
 	private void newCommand(String args[]){
@@ -241,97 +240,105 @@ public class Console extends Thread{
 				break;
 				
 				case "channel" : 
-					if(args.length >= 3){
-						String name = "";
-						int i = 2;
-						if(args[i].startsWith("\"")){
-							while(!args[i].endsWith("\"") && i < args.length-1){
-								if(!name.isEmpty())
-									name += " ";
-								name += args[i];
-								i++;
-							}
-							if(!name.isEmpty())
-								name += " ";
-							name += args[i];
-							i++;
-							
-							name=name.substring(1, name.length()-1);
-
-							if(args[i-1].endsWith("\"")){
-								if(args.length == i){
-									ctrl.newChannel(name, 0, false);
-								}
-								else if(args.length == i+1)
-										try{
-											long parentId = Long.parseLong(args[i]);
-											ctrl.newChannel(name, parentId, false);
-										}
-										catch(NumberFormatException e){
-											 System.out.println("Argument "+i+" NaN.");
-										}
-								else if(args.length == i+2){
-										try{
-											long parentId = Long.parseLong(args[i+1]);
-											long id = ctrl.newChannel(name, parentId, false);
-											((Channel)ctrl.getChannel(id)).setPassword(args[i+1]);
-										}
-										catch(NumberFormatException e){
-											 System.out.println("Argument "+i+" NaN.");
-										}
-								}
-							}
-							else
-								System.out.println("Invalid name for channel. Has to be between quotes \"\".");
-						}
-						else
-							System.out.println("Invalid name for channel. Has to be between quotes \"\".");
-					}
-					else
-						System.out.println("Illegal number of parameters. Use 'commandName ?' to obtain further informations.");
+					newChannel(args);
 				break;
 				
 				case "channelgroup" :
-					int i = 2;
-					String name = "";
-					if(args[i].startsWith("\"")){
-						while(!args[i].endsWith("\"") && i < args.length-1){
-							if(!name.isEmpty())
-								name += " ";
-							name += args[i];
-							i++;
-						}
-						if(!name.isEmpty())
-							name += " ";
-						name += args[i];
-						i++;
-						
-						name=name.substring(1, name.length()-1);
-						
-						
-						if(args[i-1].endsWith("\"")){
-							if(args.length == i){
-								ctrl.newChannelGroup(name, 0);
-							}
-							else if(args.length == i+1)
-								try{
-									long parentId = Long.parseLong(args[i]);
-									ctrl.newChannelGroup(name, parentId);
-								}
-								catch(NumberFormatException e){
-									 System.out.println("Argument "+i+" NaN.");
-								}
-						}
-						else
-							System.out.println("Invalid name for channelgroup. Has to be between quotes \"\".");
-					}
-					else
-						System.out.println("Invalid name for channelgroup. Has to be between quotes \"\".");
+					newChannelGroup(args);
 				break;
 				
 				default : System.out.println("Illegal argument 1. Use 'commandName ?' to obtain further informations.");
 			}
 		}
+	}
+	
+	private void newChannel(String args[]){
+		if(args.length >= 3){
+			String name = "";
+			int i = 2;
+			if(args[i].startsWith("\"")){
+				while(!args[i].endsWith("\"") && i < args.length-1){
+					if(!name.isEmpty())
+						name += " ";
+					name += args[i];
+					i++;
+				}
+				if(!name.isEmpty())
+					name += " ";
+				name += args[i];
+				i++;
+				
+				name=name.substring(1, name.length()-1);
+
+				if(args[i-1].endsWith("\"")){
+					if(args.length == i){
+						ctrl.newChannel(name, 0, false);
+					}
+					else if(args.length == i+1)
+							try{
+								long parentId = Long.parseLong(args[i]);
+								ctrl.newChannel(name, parentId, false);
+							}
+							catch(NumberFormatException e){
+								 System.out.println("Argument "+i+" NaN.");
+							}
+					else if(args.length == i+2){
+							try{
+								long parentId = Long.parseLong(args[i+1]);
+								long id = ctrl.newChannel(name, parentId, false);
+								((Channel)ctrl.getChannel(id)).setPassword(args[i+1]);
+							}
+							catch(NumberFormatException e){
+								 System.out.println("Argument "+i+" NaN.");
+							}
+					}
+				}
+				else
+					System.out.println("Invalid name for channel. Has to be between quotes \"\".");
+			}
+			else
+				System.out.println("Invalid name for channel. Has to be between quotes \"\".");
+		}
+		else
+			System.out.println("Illegal number of parameters. Use 'commandName ?' to obtain further informations.");
+	}
+	
+	private void newChannelGroup(String args[]){
+		int i = 2;
+		String name = "";
+		if(args[i].startsWith("\"")){
+			while(!args[i].endsWith("\"") && i < args.length-1){
+				if(!name.isEmpty())
+					name += " ";
+				name += args[i];
+				i++;
+			}
+			if(!name.isEmpty())
+				name += " ";
+			name += args[i];
+			i++;
+			
+			name=name.substring(1, name.length()-1);
+			
+			
+			if(args[i-1].endsWith("\"")){
+				if(args.length == i){
+					ctrl.newChannelGroup(name, 0);
+				}
+				else if(args.length == i+1)
+					try{
+						long parentId = Long.parseLong(args[i]);
+						ctrl.newChannelGroup(name, parentId);
+					}
+					catch(NumberFormatException e){
+						 System.out.println("Argument "+i+" NaN.");
+					}
+			}
+			else
+				System.out.println("Invalid name for channelgroup. Has to be between quotes \"\".");
+		}
+		else
+			System.out.println("Invalid name for channelgroup. Has to be between quotes \"\".");
 	}
 
 	private void shutdownCommand(String args[]){
@@ -355,60 +362,6 @@ public class Console extends Thread{
 		}
 	}
 	
-	private void startCommand(String args[]){
-		if(args.length == 2){
-			switch(args[1]){
-				case "?": System.out.println("start : Start the service given in parameter. " +
-						"\neg : 'start connexionService' will allow new connexion to the server." +
-						"\nUsable with : connexionservice, channelservice, userservice, requestservice");
-				break;
-				
-				case "connexionservice" : ctrl.enable(Controller.SERVICE.CONNEXION_SERVICE);
-				break;
-				
-				case "channelservice" : ctrl.enable(Controller.SERVICE.CHANNEL_SERVICE);
-				break;
-				
-				case "userservice" : ctrl.enable(Controller.SERVICE.USER_SERVICE);
-				break;
-				
-				case "requestservice" : ctrl.enable(Controller.SERVICE.REQUEST_SERVICE);
-				break;
-				
-				default : System.out.println("Illegal argument 1. Use 'commandName ?' to obtain further informations.");
-			}
-		}
-		else
-			System.out.println("Illegal number of parameters. Use 'commandName ?' to obtain further informations.");
-	}
-	
-	private void stopCommand(String args[]){
-		if(args.length == 2){
-			switch(args[1]){
-				case "?": System.out.println("stop : Stop the service given in parameter. " +
-						"\neg : 'stop connexionService' will unallow new connexion to the server." +
-						"\nUsable with : connexionservice, channelservice, userservice, requestservice");
-				break;
-				
-				case "connexionservice" : ctrl.disable(Controller.SERVICE.CONNEXION_SERVICE);
-				break;
-				
-				case "channelservice" : ctrl.disable(Controller.SERVICE.CHANNEL_SERVICE);
-				break;
-				
-				case "userservice" : ctrl.disable(Controller.SERVICE.USER_SERVICE);
-				break;
-				
-				case "requestservice" : ctrl.disable(Controller.SERVICE.REQUEST_SERVICE);
-				break;
-				
-				default : System.out.println("Illegal argument 1. Use 'commandName ?' to obtain further informations.");
-			}
-		}
-		else
-			System.out.println("Illegal number of parameters. Use 'commandName ?' to obtain further informations.");
-	}
-	
 	public void listCommands(){
 		System.out.println("ban - To ban users\n" +
 				"delete - To delete variables\n" +
@@ -417,8 +370,6 @@ public class Console extends Thread{
 				"move - To move a Channel\n" +
 				"new - To create a new variable\n" +
 				"search - To look for something\n" +
-				"shutdown - To stop the server\n" +
-				"start - To start a service\n" +
-				"stop - To stop a service");
+				"shutdown - To stop the server\n");
 	}
 }

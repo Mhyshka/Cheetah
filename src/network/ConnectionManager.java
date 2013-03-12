@@ -77,19 +77,10 @@ public class ConnectionManager {
 		thread = new ConnectionListener();
 		newThread();
 		System.out.println("Connection Service - Initialized.");
-		if(!this.ctrl.isEnabled(Controller.SERVICE.CHANNEL_SERVICE))
-			System.out.println("Connection Service - is stopped.");
-		else
-			System.out.println("Connection Service - is running.");
 	}
 	
 	public void addSocket(String key, Socket newSocket){
-		if(!this.ctrl.isEnabled(Controller.SERVICE.CHANNEL_SERVICE))
-			System.out.println("Connection service - is stopped. Can't add a new Client.");
-		else{
-			System.out.println("Connection Service - Client added : " + key);
 			sockets.put(key, newSocket);
-		}
 	}
 	
 	public void closeSocket(String key){
@@ -124,12 +115,8 @@ public class ConnectionManager {
 	}
 	
 	private void newThread(){
-		if(!this.ctrl.isEnabled(Controller.SERVICE.CHANNEL_SERVICE))
-			System.out.println("Connection service - is stopped. Can't run a new Thread to wait for a client.");
-		else{
-			thread = new ConnectionListener();
-			thread.start();
-		}
+		thread = new ConnectionListener();
+		thread.start();
 	}
 	
 	public void shutdown(){

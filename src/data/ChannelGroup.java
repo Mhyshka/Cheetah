@@ -14,7 +14,8 @@ public class ChannelGroup extends ChannelTree{
 	}
 	
 	public void addChild(long newChannelTreeId){
-		children.add(newChannelTreeId);
+		if(!children.contains(newChannelTreeId))
+			children.add(newChannelTreeId);
 	}
 	public Vector<Long> getChildren() {
 		return children;

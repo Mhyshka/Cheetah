@@ -1,6 +1,7 @@
 package run;
 
 import java.util.HashMap;
+import java.util.Vector;
 
 import data.Channel;
 import data.ChannelGroup;
@@ -28,32 +29,23 @@ public class ChannelManager {
 		channelId = 0;
 		channelTree = new HashMap<Long,ChannelTree>();
 		System.out.println("Channel Service - initialized.");
-		if(!this.ctrl.isEnabled(Controller.SERVICE.CHANNEL_SERVICE))
-			System.out.println("Channel service - is stopped.");
-		else
-			System.out.println("Channel service - is running.");
 		if(getChannelId() == 0){
 			addChannelGroup(new ChannelGroup(0, "root", null));
 			nextChannelId();
-			newChannel("General", (long)0, false);
+			newChannel("General", 0, false);
 		}
 	}
 	
 	public void addChannel(Channel newChannel){
-		if(!this.ctrl.isEnabled(Controller.SERVICE.CHANNEL_SERVICE))
-			System.out.println("Channel service - is stopped. Can't add a new Channel.");
-		else{
-			channelTree.put(newChannel.getId(),newChannel);
-		}
+		channelTree.put(newChannel.getId(),newChannel);
+		if(ctrl.isInit(Controller.SERVICE.CHANNEL_SERVICE))
+			ctrl.sendNewChannel(newChannel);
 	}
 	
 	public void addChannelGroup(ChannelGroup newChannelGroup){
-		if(!this.ctrl.isEnabled(Controller.SERVICE.CHANNEL_SERVICE))
-			System.out.println("Channel service - is stopped. Can't add a new ChannelGroup.");
-		else{
-			channelTree.put(newChannelGroup.getId(),newChannelGroup);
-		}
-			
+		channelTree.put(newChannelGroup.getId(),newChannelGroup);
+		if(ctrl.isInit(Controller.SERVICE.CHANNEL_SERVICE))
+			ctrl.sendChannels();
 	}
 
 	public ChannelTree getChannel(long chanId){
@@ -116,52 +108,48 @@ public class ChannelManager {
 	}	
 	
 	public void removeChannel(long id){
-		if(!this.ctrl.isEnabled(Controller.SERVICE.CHANNEL_SERVICE))
-			System.out.println("Channel service - is stopped. Can't remove a new Channel Component.");
+		if(getChannel(id) instanceof ChannelGroup){
+			System.out.println("Channel service - Wrong Channel ID. This is a ChannelGroup ID.");
+		}
 		else{
-			if(getChannel(id) instanceof ChannelGroup){
-				System.out.println("Channel service - Wrong Channel ID. This is a ChannelGroup ID.");
-			}
-			else{
-				((Channel)getChannel(id)).getParent().removeChild(id);
-				channelTree.remove(id);
-				System.out.println("Channel service - Channel : "+ id + " has been removed.");
-			}
+			((Channel)getChannel(id)).getParent().removeChild(id);
+			channelTree.remove(id);
+			ctrl.sendRmChannel(id);
+			System.out.println("Channel service - Channel : "+ id + " has been removed.");
 		}
 	}
 	
 	public void removeChannelGroup(long id, boolean lenient){
-		if(!this.ctrl.isEnabled(Controller.SERVICE.CHANNEL_SERVICE))
-			System.out.println("Channel service - is stopped. Can't remove a new Channel Component.");
-		else{
-			if(getChannel(id) instanceof ChannelGroup){
-				if(lenient){
-					if(getChannel(id).getParent() != null)
-						for(long cid : ((ChannelGroup)channelTree.get(id)).getChildren())
-								getChannel(cid).setParent((ChannelGroup)getChannel(getChannel(id).getParent().getId()));
-					if( id!= 0){
-						channelTree.remove(id);
-						System.out.println("Channel service - ChannelGroup : "+ id + " has been removed. His children has been given to his parent.");
-					}
-					else{
-						System.out.println("Channel service - ChannelGroup root can't be removed.");
-					}
+		if(getChannel(id) instanceof ChannelGroup){
+			if(lenient){
+				if(getChannel(id).getParent() != null){
+					Vector<Long> childrenId = new Vector<Long>(((ChannelGroup)channelTree.get(id)).getChildren());
+					for(long cid : childrenId)
+							getChannel(cid).setParent((ChannelGroup)getChannel(getChannel(id).getParent().getId()));
+				}
+				if( id!= 0){
+					channelTree.remove(id);
+					ctrl.sendChannels();
+					System.out.println("Channel service - ChannelGroup : "+ id + " has been removed. His children has been given to his parent.");
 				}
 				else{
-					removeChildren((ChannelGroup)getChannel(id));
-					if( id!= 0){
-						channelTree.remove(id);
-						System.out.println("Channel service - ChannelGroup : "+ id + " has been removed. His children has been removed.");
-					}
-					else{
-						System.out.println("Channel service - ChannelGroup root can't be removed. His children has been deleted though.");
-					}
-					
+					System.out.println("Channel service - ChannelGroup root can't be removed.");
 				}
 			}
-			else
-				System.out.println("Channel service - Wrong ChannelGroup ID. This is a Channel ID.");
+			else{
+				removeChildren((ChannelGroup)getChannel(id));
+				if( id!= 0){
+					channelTree.remove(id);
+					System.out.println("Channel service - ChannelGroup : "+ id + " has been removed. His children has been removed.");
+				}
+				else{
+					System.out.println("Channel service - ChannelGroup root can't be removed. His children has been deleted though.");
+				}
+				
+			}
 		}
+		else
+			System.out.println("Channel service - Wrong ChannelGroup ID. This is a Channel ID.");
 	}
 	
 	public HashMap<Long, ChannelTree> getChannels(){
@@ -169,7 +157,8 @@ public class ChannelManager {
 	}
 	
 	public void removeChildren(ChannelGroup channelGroup){
-		for(long cid : channelGroup.getChildren()){
+		Vector<Long> childrenId = new Vector<Long>(channelGroup.getChildren());
+		for(long cid : childrenId){
 			if(getChannel(cid) instanceof ChannelGroup){
 				removeChildren((ChannelGroup)getChannel(cid));
 			}
@@ -194,7 +183,7 @@ public class ChannelManager {
 				if(getChannel(id) instanceof ChannelGroup){
 					listChannels(id, indents);
 				}
-				else{
+				else if(getChannel(id) instanceof Channel){
 					childC = (Channel)getChannel(id);
 					str += id + " C " + childC.getName() + " - " + childC.getUsers().size() + " users" + " - owner : "+childC.getOwner();
 					System.out.println(indents + str);

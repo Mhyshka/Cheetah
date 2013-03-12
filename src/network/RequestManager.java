@@ -79,7 +79,15 @@ public class RequestManager {
 				break;
 				
 				case "channels" :
-						readChannels();
+					readChannels();
+				break;
+				
+				case "newchannel" :
+					readNewChannel(request);
+				break;
+				
+				case "rmchannel" :
+					readRmChannel(request);
 				break;
 				
 				default : System.out.println("Request Service Error - Unkown message type :" + request.getType() + "\nfrom : " + key);
@@ -166,6 +174,16 @@ public class RequestManager {
 			ctrl.disconnectClient(username, key);
 			username = "";
 			System.out.println("Request Service - A client disconnected.");
+		}
+		
+		private void readNewChannel(Request request){
+			// TODO
+			// Lecture d'une requète de nouveau channel.
+		}
+		
+		private void readRmChannel(Request request){
+			// TODO
+			// Lecture d'une requète de suppression de channel.
 		}
 		
 		@Override
@@ -370,6 +388,21 @@ public class RequestManager {
 		for(String username : channel.getUsers()){
 			request.addKey(ctrl.getUser(username).getKey());
 		}
+		sendRequest(request);
+	}
+	
+	public void sendChannels(){
+		Request request = new Request("channels",new Gson().toJson(ctrl.getChannels()),ctrl.getKeys());
+		sendRequest(request);
+	}
+	
+	public void sendNewChannel(Channel newChannel){
+		Request request = new Request("newchannel",new Gson().toJson(newChannel),ctrl.getKeys());
+		sendRequest(request);
+	}
+	
+	public void sendRmChannel(long channelId){
+		Request request = new Request("rmchannel",""+channelId,ctrl.getKeys());
 		sendRequest(request);
 	}
 }

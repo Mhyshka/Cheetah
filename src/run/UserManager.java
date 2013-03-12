@@ -130,15 +130,11 @@ public class UserManager {
 			System.out.println("User Service Error - User : " + username + " doesn't exist. Can't join channel : " +channelId);
 		else if(ctrl.getChannel(channelId) == null)
 			System.out.println("User Service Error - Channel : " + channelId + " doesn't exist. User : "+ username + "couldn'tt join this channel.");
-		else if(!ctrl.isEnabled(Controller.SERVICE.USER_SERVICE))
-			System.out.println("User Service - is stopped. Couldn't join user : " + username + " to channel : " + channelId + ".");
-		else{
-			if(!isUserLinkedToChannel(username,channelId)){
-				getUser(username).addChannel(channelId);
-				((Channel)ctrl.getChannel(channelId)).addUser(username);
-				ctrl.sendJoinned(username,channelId);
-				System.out.println("User Service - User : " + username + " joinned channel : " + channelId + ".");
-			}	
+		else if(!isUserLinkedToChannel(username,channelId)){
+			getUser(username).addChannel(channelId);
+			((Channel)ctrl.getChannel(channelId)).addUser(username);
+			ctrl.sendJoinned(username,channelId);
+			System.out.println("User Service - User : " + username + " joinned channel : " + channelId + ".");
 		}	
 	}
 	
@@ -199,56 +195,40 @@ public class UserManager {
 	}
 	
 	public void removeAdmin(String username){
-		if(ctrl.isEnabled(Controller.SERVICE.USER_SERVICE)){
-			if(admins.containsKey(username)){
-				admins.remove(username);
-				System.out.println("User Service - Admin : "+ username+ " was removed.");
-			}
-			else
-				System.out.println("User Service Error - Admin : "+ username+ " doesn't exist. Couldn't remove it.");
+		if(admins.containsKey(username)){
+			admins.remove(username);
+			System.out.println("User Service - Admin : "+ username+ " was removed.");
 		}
-		else{
-			System.out.println("User Service - is stopped. Coudln't remove admin : "+ username+ ".");
-		}
+		else
+			System.out.println("User Service Error - Admin : "+ username+ " doesn't exist. Couldn't remove it.");
 	}
 	
 	public void removeUser(long id){
-		if(ctrl.isEnabled(Controller.SERVICE.USER_SERVICE)){
-			boolean removed = false;
-			for(String key : users.keySet()){
-				if(users.get(key).getId() == id){
-					users.remove(key);
-					removed = true;
-					ctrl.sendWelcome(key);
-					System.out.println("User Service - User : "+ key + " was removed.");
-				}
+		boolean removed = false;
+		for(String key : users.keySet()){
+			if(users.get(key).getId() == id){
+				users.remove(key);
+				removed = true;
+				ctrl.sendWelcome(key);
+				System.out.println("User Service - User : "+ key + " was removed.");
 			}
-			if(!removed)
-				System.out.println("User Service Error - Userid : "+ id + " doesn't exist. Couldn't remove it.");
 		}
-		else{
-			System.out.println("User Service - is stopped. Coudln't remove userid : "+ id + ".");
-		}
-		
+		if(!removed)
+			System.out.println("User Service Error - Userid : "+ id + " doesn't exist. Couldn't remove it.");
 	}
 	
 	public void removeUser(String username, boolean disconnecting){
-		if(ctrl.isEnabled(Controller.SERVICE.USER_SERVICE)){
-			if(users.containsKey(username)){
-				if(!disconnecting)
-					ctrl.sendWelcome(users.get(username).getKey());
-				Vector<Long> chans = new Vector<Long>(getUser(username).getChannels());
-				for(long id : chans)
-					unlinkUserToChannel(username, id);
-				users.remove(username);
-				System.out.println("User Service - User : "+ username+ " was removed.");
-			}
-			else
-				System.out.println("User Service Error - User : "+ username+ " doesn't exist. Couldn't remove it.");
+		if(users.containsKey(username)){
+			if(!disconnecting)
+				ctrl.sendWelcome(users.get(username).getKey());
+			Vector<Long> chans = new Vector<Long>(getUser(username).getChannels());
+			for(long id : chans)
+				unlinkUserToChannel(username, id);
+			users.remove(username);
+			System.out.println("User Service - User : "+ username+ " was removed.");
 		}
-		else{
-			System.out.println("User Service - is stopped. Coudln't remove user : "+ username+ ".");
-		}
+		else
+			System.out.println("User Service Error - User : "+ username+ " doesn't exist. Couldn't remove it.");
 	}
 	
 	public void unbanUser(String username){
@@ -259,39 +239,24 @@ public class UserManager {
 		banList.remove(key);
 	}
 	
-	public void unlinkUserToChannel(String username, long channelId){
-		if(ctrl.isEnabled(Controller.SERVICE.USER_SERVICE)){
-			if(isUserLinkedToChannel(username,channelId)){
-				getUser(username).removeChannel(channelId);
-				((Channel)ctrl.getChannel(channelId)).removeUser(username);
-				ctrl.sendLeft(username, channelId);
-				System.out.println("User Service - User : " + username + " left channel : " + channelId);
-			}
-			else{
-				System.out.println("User Service Error - User : " + username + " wasn't in channel : " + channelId);
-			}
+	public boolean unlinkUserToChannel(String username, long channelId){
+		if(isUserLinkedToChannel(username,channelId)){
+			getUser(username).removeChannel(channelId);
+			((Channel)ctrl.getChannel(channelId)).removeUser(username);
+			ctrl.sendLeft(username, channelId);
+			System.out.println("User Service - User : " + username + " left channel : " + channelId);
+			return true;
 		}
 		else{
-			System.out.println("User Service - is stopped. Coudln't link a user to a channel.");
+			System.out.println("User Service Error - User : " + username + " wasn't in channel : " + channelId);
+			return false;
 		}
 	}
 	
 	public void unlinkUserToChannel(String username, long channelId, boolean notify){
-		if(ctrl.isEnabled(Controller.SERVICE.USER_SERVICE)){
-			if(isUserLinkedToChannel(username,channelId)){
-				getUser(username).removeChannel(channelId);
-				((Channel)ctrl.getChannel(channelId)).removeUser(username);
-				if(notify)
-					ctrl.sendLeft(username, channelId);
-				System.out.println("User Service - User : " + username + " left channel : " + channelId);
-			}
-			else{
-				System.out.println("User Service Error - User : " + username + " wasn't in channel : " + channelId);
-			}
-		}
-		else{
-			System.out.println("User Service - is stopped. Coudln't link a user to a channel.");
-		}
+		if(unlinkUserToChannel(username, channelId))
+			if(notify)
+				ctrl.sendLeft(username, channelId);
 	}
 	
 	public boolean usedUsername(String username){
@@ -335,5 +300,13 @@ public class UserManager {
 		for(String s : usernames){
 			ctrl.logoutUser(s);
 		}
+	}
+	
+	public Vector<String> getKeys(){
+		Vector<String> keys = new Vector<String>();
+		for(String username : ctrl.getUsers().keySet()){
+			keys.add(ctrl.getUser(username).getKey());
+		}
+		return keys;
 	}
 }

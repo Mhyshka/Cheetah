@@ -3,6 +3,7 @@ package run;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Vector;
 
 import network.ConnectionManager;
 import network.RequestManager;
@@ -15,7 +16,7 @@ import data.User;
 
 public class Controller {
 	public enum SERVICE{
-		CONNEXION_SERVICE, CHANNEL_SERVICE, REQUEST_SERVICE, USER_SERVICE;
+		CONNECTION_SERVICE, CHANNEL_SERVICE, REQUEST_SERVICE, USER_SERVICE;
 	}
 	
 	private int port;
@@ -25,10 +26,6 @@ public class Controller {
 	private RequestManager requestManager;
 	private UserManager userManager;
 	private Console console;
-	private boolean connexionService = true;
-	private boolean channelService = true;
-	private boolean requestService = true;
-	private boolean userService = true;
 	private String serverName;
 	
 	
@@ -40,13 +37,9 @@ public class Controller {
 		this.port = port;
 		serverName = "Cheetah Server";
 		running = true;
-		
 		connectionManager = ConnectionManager.getInstance(this);
-		
-		channelManager = ChannelManager.getInstance(this);
-		
 		requestManager = RequestManager.getInstance(this);
-		
+		channelManager = ChannelManager.getInstance(this);
 		userManager = UserManager.getInstance(this);
 		
 		console = Console.getInstance(this);
@@ -63,10 +56,6 @@ public class Controller {
 
 	public void addUser(String username, String key){
 		login(username, key);
-	}
-	
-	public void ban(String args[]){
-		
 	}
 	
 	public void banUser(String username){
@@ -87,93 +76,6 @@ public class Controller {
 	
 	public void closeSocketByKey(String key){
 		connectionManager.closeSocket(key);
-	}
-	
-	public void disable(SERVICE service){
-		switch (service){
-			case CONNEXION_SERVICE : 
-				if(connexionService){
-					connexionService = false;
-					connectionManager.disable();
-					System.out.println("Connexion Service disabled");
-				}
-				else
-					System.out.println("Connexion Service was already disable");
-			break;
-				
-			case CHANNEL_SERVICE : 
-				if(channelService){
-					channelService = false;
-					channelManager.disable();
-					System.out.println("Channel Service disabled");
-				}
-				else
-					System.out.println("Channel Service was already disable");
-			break;
-			
-			case REQUEST_SERVICE :
-				if(!requestService){
-					requestService = false;
-					requestManager.disable();
-					System.out.println("Request Service enabled");
-				}
-				else
-					System.out.println("Request Service was already disable");
-			break;
-			
-			case USER_SERVICE :
-				if(!userService){
-					userService = false;
-					userManager.disable();
-					System.out.println("User Service disabled");
-				}
-				else
-					System.out.println("User Service was already disable");
-			break;
-		}
-	}
-	
-	public void enable(SERVICE service){
-		switch (service){
-			case CONNEXION_SERVICE :				
-				if(!connexionService){
-					connexionService = true;
-					connectionManager.enable();
-					System.out.println("Connexion Service enabled");
-				}
-				else
-					System.out.println("Connexion Service was already enable");
-			break;
-			case CHANNEL_SERVICE :
-				if(!channelService){
-					channelService = true;
-					channelManager.enable();
-					System.out.println("Channel Service enabled");
-				}
-				else
-					System.out.println("Channel Service was already enable");
-			break;
-			
-			case REQUEST_SERVICE :
-				if(!requestService){
-					requestService = true;
-					requestManager.enable();
-					System.out.println("Request Service enabled");
-				}
-				else
-					System.out.println("Request Service was already enable");
-			break;
-			
-			case USER_SERVICE :
-				if(!userService){
-					userService = true;
-					userManager.enable();
-					System.out.println("User Service enabled");
-				}
-				else
-					System.out.println("User Service was already enable");
-			break;
-		}
 	}
 
 	public ChannelTree getChannel(long chanId){
@@ -208,16 +110,6 @@ public class Controller {
 		return userManager.isBan(key);
 	}
 	
-	public boolean isEnabled(SERVICE service){
-		switch (service){
-			case CONNEXION_SERVICE : return connexionService;
-			case CHANNEL_SERVICE : return channelService;
-			case USER_SERVICE : return userService;
-			case REQUEST_SERVICE : return requestService;
-		}
-		return false;
-	}
-	
 	public boolean isRunning() {
 		return running;
 	}
@@ -226,8 +118,8 @@ public class Controller {
 		userManager.linkUserToChannel(username, channelId);
 	}
 	
-	public void kick(String args[]){
-		
+	public void kick(String pseudo){
+		// TODO
 	}
 	
 	public void leaveChannel(String username, long channelId){
@@ -336,6 +228,18 @@ public class Controller {
 		requestManager.sendRequest(request);
 	}
 	
+	public void sendChannels(){
+		requestManager.sendChannels();
+	}
+	
+	public void sendNewChannel(Channel newChannel){
+		requestManager.sendNewChannel(newChannel);
+	}
+	
+	public void sendRmChannel(long channelId){
+		requestManager.sendRmChannel(channelId);
+	}
+	
 	public HashMap<Long,ChannelTree> getChannels(){
 		return channelManager.getChannels();
 	}
@@ -388,5 +292,41 @@ public class Controller {
 	
 	public void sendWelcome(String key){
 		requestManager.sendWelcome(key);
+	}
+	
+	public HashMap<String, User> getUsers(){
+		return userManager.getUsers();
+	}
+	
+	public Vector<String> getKeys(){
+		return userManager.getKeys();
+	}
+	
+	public boolean isInit(SERVICE service){
+		boolean isInit = false;
+		switch(service){
+			case CONNECTION_SERVICE :
+				if(connectionManager != null)
+					isInit = true;
+			break;
+
+			case CHANNEL_SERVICE :
+				if(channelManager != null)
+					isInit = true;
+			break;
+			
+			case REQUEST_SERVICE :
+				if(requestManager != null)
+					isInit = true;
+			break;
+			
+			case USER_SERVICE :
+				if(userManager != null)
+					isInit = true;
+			break;
+				
+			default : isInit = false;;
+		}
+		return isInit;
 	}
 }
