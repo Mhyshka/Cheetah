@@ -29,4 +29,9 @@ public abstract class ChannelTree {
 		if(chGroup != null)
 			chGroup.addChild(id);
 	}
+	
+	@Override
+	public String toString(){
+		return this.getName();
+	}
 }

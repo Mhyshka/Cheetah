@@ -130,7 +130,7 @@ public class UserManager {
 			System.out.println("User Service Error - User : " + username + " doesn't exist. Can't join channel : " +channelId);
 		else if(ctrl.getChannel(channelId) == null)
 			System.out.println("User Service Error - Channel : " + channelId + " doesn't exist. User : "+ username + "couldn'tt join this channel.");
-		else if(!isUserLinkedToChannel(username,channelId)){
+		else if(ctrl.getChannel(channelId) instanceof Channel && !isUserLinkedToChannel(username,channelId)){
 			getUser(username).addChannel(channelId);
 			((Channel)ctrl.getChannel(channelId)).addUser(username);
 			ctrl.sendJoinned(username,channelId);
@@ -223,7 +223,7 @@ public class UserManager {
 				ctrl.sendWelcome(users.get(username).getKey());
 			Vector<Long> chans = new Vector<Long>(getUser(username).getChannels());
 			for(long id : chans)
-				unlinkUserToChannel(username, id);
+				unlinkUserToChannel(username, id, true);
 			users.remove(username);
 			System.out.println("User Service - User : "+ username+ " was removed.");
 		}

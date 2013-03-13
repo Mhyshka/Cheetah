@@ -260,7 +260,10 @@ public class RequestManager {
 			Gson gson = new Gson();
 			for(String key : request.getKeys()){
 				try {
-					dos.get(key).writeUTF(gson.toJson(request));
+					if(dos.get(key)!=null)
+						dos.get(key).writeUTF(gson.toJson(request));
+					else
+						removeClient(key);
 				} catch (IOException e) {
 					System.out.println("Request Service Error - IOException while sending data to the client socket : " + key + "\nRequest : " + gson.toJson(request));
 					e.printStackTrace();
@@ -364,7 +367,7 @@ public class RequestManager {
 	
 	public void sendJoinned(String username, long channelId){
 		Vector<String> keys = new Vector<String>();
-		for(String user : ((Channel)ctrl.getChannel(channelId)).getUsers()){
+		for(String user : ctrl.getUsers().keySet()){
 			keys.add(ctrl.getUser(user).getKey());
 		}
 		sendRequest(new Request("joinned",username+"&"+channelId,keys));
@@ -372,7 +375,7 @@ public class RequestManager {
 	
 	public void sendLeft(String username, long channelId){
 		Vector<String> keys = new Vector<String>();
-		for(String user : ((Channel)ctrl.getChannel(channelId)).getUsers()){
+		for(String user : ctrl.getUsers().keySet()){
 			keys.add(ctrl.getUser(user).getKey());
 		}
 		sendRequest(new Request("left",username+"&"+channelId,keys));

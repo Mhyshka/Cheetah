@@ -19,6 +19,9 @@ public class Controller {
 		CONNECTION_SERVICE, CHANNEL_SERVICE, REQUEST_SERVICE, USER_SERVICE;
 	}
 	
+	public static void start(int port) {	
+		new Controller(port);
+	}
 	private int port;
 	private boolean running = false;
 	private ConnectionManager connectionManager;
@@ -26,12 +29,9 @@ public class Controller {
 	private RequestManager requestManager;
 	private UserManager userManager;
 	private Console console;
+	
+	
 	private String serverName;
-	
-	
-	public static void start(int port) {	
-		new Controller(port);
-	}
 
 	private Controller(int port){
 		this.port = port;
@@ -46,18 +46,14 @@ public class Controller {
 		console.start();
 	}
 	
-	public String getServerName(){
-		return serverName;
-	}
-	
 	public void addAdmin(String username, String key){
 		newAdmin(username, key);
 	}
-
+	
 	public void addUser(String username, String key){
 		login(username, key);
 	}
-	
+
 	public void banUser(String username){
 		userManager.banUser(username);
 	}
@@ -65,7 +61,7 @@ public class Controller {
 	public void banUserByKey(String key){
 		userManager.banUserByKey(key);
 	}
-
+	
 	public boolean checkPassword(String username, String password, String key) {
 		return userManager.checkPassword(username,password,key);
 	}
@@ -73,8 +69,15 @@ public class Controller {
 	public void closeSocket(String username){
 		connectionManager.closeSocket(getUser(username).getKey());
 	}
-	
+
 	public void closeSocketByKey(String key){
+		connectionManager.closeSocket(key);
+	}
+	
+	public void disconnectClient(String username, String key){
+		if(!username.isEmpty())
+			removeUser(username, true);
+		requestManager.removeClient(key);
 		connectionManager.closeSocket(key);
 	}
 
@@ -82,10 +85,22 @@ public class Controller {
 		return channelManager.getChannel(chanId);
 	}
 
+	public HashMap<Long,ChannelTree> getChannels(){
+		return channelManager.getChannels();
+	}
+	
+	public Vector<String> getKeys(){
+		return userManager.getKeys();
+	}
+	
 	public int getPort(){
 		return port;
 	}
-	
+
+	public String getServerName(){
+		return serverName;
+	}
+
 	public ServerSocket getServerSocket(){
 		return connectionManager.getServerSocket();
 	}
@@ -93,11 +108,15 @@ public class Controller {
 	public User getUser(String username){
 		return userManager.getUser(username);
 	}
-
+	
+	public HashMap<String, User> getUsers(){
+		return userManager.getUsers();
+	}
+	
 	public Socket getUserSocket(String username){
 		return connectionManager.getSocket(getUser(username).getKey());
 	}
-
+	
 	public Socket getUserSocketByKey(String key){
 		return connectionManager.getSocket(key);
 	}
@@ -108,6 +127,34 @@ public class Controller {
 	
 	public boolean isBan(String key){
 		return userManager.isBan(key);
+	}
+	
+	public boolean isInit(SERVICE service){
+		boolean isInit = false;
+		switch(service){
+			case CONNECTION_SERVICE :
+				if(connectionManager != null)
+					isInit = true;
+			break;
+
+			case CHANNEL_SERVICE :
+				if(channelManager != null)
+					isInit = true;
+			break;
+			
+			case REQUEST_SERVICE :
+				if(requestManager != null)
+					isInit = true;
+			break;
+			
+			case USER_SERVICE :
+				if(userManager != null)
+					isInit = true;
+			break;
+				
+			default : isInit = false;;
+		}
+		return isInit;
 	}
 	
 	public boolean isRunning() {
@@ -163,17 +210,10 @@ public class Controller {
 		sendChannels(key);
 	}
 	
-	public void disconnectClient(String username, String key){
-		if(!username.isEmpty())
-			removeUser(username, true);
-		requestManager.removeClient(key);
-		connectionManager.closeSocket(key);
-	}
-	
 	public void logoutUser(String username) {
 		userManager.logoutUser(username);
 	}
-	
+
 	public void newAdmin(String username, String password){
 		userManager.addAdmin(username, password);
 	}
@@ -186,14 +226,18 @@ public class Controller {
 		return channelManager.newChannelGroup(name, parentId);
 	}
 	
+	public void newClient(Socket socket, String key){
+		requestManager.newClientThread(socket, key);
+	}
+
 	public void newMessage(long channelId, Message message){
 		((Channel)getChannel(channelId)).addMessage(message);
 	}
-
+	
 	public void removeAdmin(String username){
 		userManager.removeAdmin(username);
 	}
-	
+
 	public void removeChannel(long channelId){
 		channelManager.removeChannel(channelId);
 	}
@@ -206,16 +250,12 @@ public class Controller {
 		requestManager.removeClient(getUser(username).getKey());
 		connectionManager.closeSocket(getUser(username).getKey());
 	}
-
-	public void newClient(Socket socket, String key){
-		requestManager.newClientThread(socket, key);
-	}
 	
 	public void removeClientByKey(String key){
 		requestManager.removeClient(key);
 		connectionManager.closeSocket(key);
 	}
-
+	
 	public void removeUser(long userId){
 		userManager.removeUser(userId);
 	}
@@ -232,6 +272,18 @@ public class Controller {
 		requestManager.sendChannels();
 	}
 	
+	public void sendChannels(String key){
+		requestManager.sendChannels(key);
+	}
+	
+	public void sendJoinned(String username, long channelId){
+		requestManager.sendJoinned(username, channelId);
+	}
+
+	public void sendLeft(String username, long channelId){
+		requestManager.sendLeft(username, channelId);
+	}
+	
 	public void sendNewChannel(Channel newChannel){
 		requestManager.sendNewChannel(newChannel);
 	}
@@ -240,8 +292,8 @@ public class Controller {
 		requestManager.sendRmChannel(channelId);
 	}
 	
-	public HashMap<Long,ChannelTree> getChannels(){
-		return channelManager.getChannels();
+	public void sendWelcome(String key){
+		requestManager.sendWelcome(key);
 	}
 	
 	public void shutdown(String reason){
@@ -273,60 +325,8 @@ public class Controller {
 	public void unbanUserByKey(String key){
 		userManager.unbanUserByKey(key);
 	}
-
+	
 	public boolean usedUsername(String username) {
 		return userManager.usedUsername(username);
-	}
-	
-	public void sendChannels(String key){
-		requestManager.sendChannels(key);
-	}
-	
-	public void sendJoinned(String username, long channelId){
-		requestManager.sendJoinned(username, channelId);
-	}
-	
-	public void sendLeft(String username, long channelId){
-		requestManager.sendLeft(username, channelId);
-	}
-	
-	public void sendWelcome(String key){
-		requestManager.sendWelcome(key);
-	}
-	
-	public HashMap<String, User> getUsers(){
-		return userManager.getUsers();
-	}
-	
-	public Vector<String> getKeys(){
-		return userManager.getKeys();
-	}
-	
-	public boolean isInit(SERVICE service){
-		boolean isInit = false;
-		switch(service){
-			case CONNECTION_SERVICE :
-				if(connectionManager != null)
-					isInit = true;
-			break;
-
-			case CHANNEL_SERVICE :
-				if(channelManager != null)
-					isInit = true;
-			break;
-			
-			case REQUEST_SERVICE :
-				if(requestManager != null)
-					isInit = true;
-			break;
-			
-			case USER_SERVICE :
-				if(userManager != null)
-					isInit = true;
-			break;
-				
-			default : isInit = false;;
-		}
-		return isInit;
 	}
 }

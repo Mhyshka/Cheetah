@@ -194,12 +194,4 @@ public class ChannelManager {
 			System.out.println("Channel Service Error - Can't list the children of a Channel that isn't a ChannelGroup.");
 		}
 	}
-	
-	public void enable(){
-		
-	}
-	
-	public void disable(){
-		
-	}
 }
